@@ -7,6 +7,7 @@ SITE_ROOT = os.path.realpath(os.path.dirname(__file__))
 json_url = os.path.join(SITE_ROOT, "data", "pictures.json")
 data: list = json.load(open(json_url))
 
+
 ######################################################################
 # RETURN HEALTH OF THE APP
 ######################################################################
@@ -15,6 +16,7 @@ data: list = json.load(open(json_url))
 @app.route("/health")
 def health():
     return jsonify(dict(status="OK")), 200
+
 
 ######################################################################
 # COUNT THE NUMBER OF PICTURES
@@ -33,9 +35,20 @@ def count():
 ######################################################################
 # GET ALL PICTURES
 ######################################################################
+
+
 @app.route("/picture", methods=["GET"])
 def get_pictures():
-    pass
+    try:
+        if not isinstance(data, list):
+            raise TypeError('Data is not in list format!')
+        return jsonify([
+                picture['pic_url'] for picture in data
+                if 'pic_url' in picture
+            ]), 200
+    except Exception as e:
+        return {'Message': f'Error: {str(e)}'}, 500
+
 
 ######################################################################
 # GET A PICTURE
@@ -44,15 +57,31 @@ def get_pictures():
 
 @app.route("/picture/<int:id>", methods=["GET"])
 def get_picture_by_id(id):
-    pass
+    try:
+        for picture in data:
+            if int(picture['id']) == id:
+                return jsonify(picture), 200
+
+        # No matching picture was found with given ID
+        return {
+            'Message': f'No matching image found with ID of {str(id)}.'
+        }, 404
+    
+    except Exception as e: 
+        return {
+            'Message': f'Internal error: {str(e)}. Data not found'
+        }, 500
 
 
 ######################################################################
 # CREATE A PICTURE
 ######################################################################
+
+
 @app.route("/picture", methods=["POST"])
 def create_picture():
     pass
+
 
 ######################################################################
 # UPDATE A PICTURE
@@ -63,9 +92,12 @@ def create_picture():
 def update_picture(id):
     pass
 
+
 ######################################################################
 # DELETE A PICTURE
 ######################################################################
+
+
 @app.route("/picture/<int:id>", methods=["DELETE"])
 def delete_picture(id):
     pass
