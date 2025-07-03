@@ -29,7 +29,7 @@ def count():
     if data:
         return jsonify(length=len(data)), 200
 
-    return {"message": "Internal server error"}, 500
+    return jsonify({"message": "Internal server error"}), 500
 
 
 ######################################################################
@@ -47,7 +47,7 @@ def get_pictures():
                 if 'pic_url' in picture
             ]), 200
     except Exception as e:
-        return {'Message': f'Error: {str(e)}'}, 500
+        return jsonify({'Message': f'Error: {str(e)}'}), 500
 
 
 ######################################################################
@@ -63,14 +63,14 @@ def get_picture_by_id(id):
                 return jsonify(picture), 200
 
         # No matching picture was found with given ID
-        return {
+        return jsonify({
             'Message': f'No matching image found with ID of {str(id)}.'
-        }, 404
+        }), 404
     
     except Exception as e: 
-        return {
+        return jsonify({
             'Message': f'Internal error: {str(e)}. Data not found'
-        }, 500
+        }), 500
 
 
 ######################################################################
@@ -80,7 +80,29 @@ def get_picture_by_id(id):
 
 @app.route("/picture", methods=["POST"])
 def create_picture():
-    pass
+    try:
+        picture = request.get_json()
+
+        # If the POSTed picture isn't formatted properly
+        if not picture or 'id' not in picture:
+            return jsonify({
+                'Message': 'Missing or malformed picture data'
+            }), 400
+
+        # If an existing ID matches the POSTed ID for any picture
+        if any(int(pic['id']) == int(picture['id']) for pic in data):
+            return jsonify({
+                'Message': f'picture with id {picture["id"]} already present'
+            }), 302
+            
+        # Otherwise, append the POSTed picture into our data
+        data.append(picture)
+        return jsonify(picture), 201
+
+    except Exception as e: 
+        return jsonify({
+            'Message': f'Internal error: {str(e)}. Data not saved.'
+        }), 500
 
 
 ######################################################################
