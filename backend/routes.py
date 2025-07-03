@@ -112,7 +112,37 @@ def create_picture():
 
 @app.route("/picture/<int:id>", methods=["PUT"])
 def update_picture(id):
-    pass
+    try:
+        picture = request.get_json()
+        required_keys = [
+            'id',
+            'pic_url',
+            'event_country',
+            'event_state',
+            'event_city',
+            'event_date'
+        ]
+
+        # Validate incoming picture data 
+        if not all(key in picture for key in required_keys):
+            return jsonify({
+                'Message': 'Picture unprocessable. All keys are required'
+            }), 422
+
+        # Attempt to find a picture with matching ID
+        for idx, pic in enumerate(data):
+            if int(pic['id']) == id:
+                data[idx] = picture
+                
+                # Picture match found!
+                return jsonify({
+                    'Message': 'Picture updated successfully'
+                }), 200
+        
+        return jsonify({'Message': 'Picture not found'}), 404
+
+    except Exception as e:
+        return jsonify({'Message': 'Internal server error'}), 500
 
 
 ######################################################################
